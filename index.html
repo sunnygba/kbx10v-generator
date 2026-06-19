@@ -52,9 +52,10 @@
         </div>
 
         <div class="mb-5 bg-blue-50 p-3 rounded border border-blue-100">
-            <label class="block text-sm font-bold mb-2 text-blue-900" data-i18n="inspirations">💡 顏色靈感盤：</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="inspiration-palettes">
-            </div>
+            <label class="block text-sm font-bold mb-2 text-blue-900" data-i18n="inspirations">💡 智慧顏色靈感盤 (依當前設定微調)：</label>
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-2" id="inspiration-palettes">
+                </div>
+            <p class="text-xs text-blue-700 mt-2 opacity-80" data-i18n="inspirationsHint">* 點擊色塊可直接套用該微調參數</p>
         </div>
 
         <div class="space-y-4 mb-4">
@@ -110,7 +111,7 @@
         </div>
 
         <p class="text-xs text-gray-500 mb-1" data-i18n="dragHint">💡 提示：可直接使用滑鼠上下拖拉排序</p>
-        <div class="flex-1 overflow-y-auto mb-4 border rounded p-2 bg-gray-50 min-h-[500px] max-h-[1000px]">
+        <div class="flex-1 overflow-y-auto mb-4 border rounded p-2 bg-gray-50 min-h-[600px] max-h-[1000px]">
             <ul id="color-list" class="space-y-2">
             </ul>
         </div>
@@ -163,7 +164,8 @@
             step1: "1.調配顏色",
             presets: "預設顏色庫：",
             colorPicker: "🖌️自訂調色盤：",
-            inspirations: "💡 顏色靈感盤：",
+            inspirations: "💡 智慧顏色靈感盤 (依當前設定微調)：",
+            inspirationsHint: "* 點擊色塊可直接套用該微調參數",
             addAll: "一組加入",
             preview: "應援棒顯色預覽",
             addToList: "加入至顏色清單",
@@ -199,7 +201,8 @@
             step1: "1. Color Mixing",
             presets: "🎨Presets:",
             colorPicker: "🖌️ Color Picker:",
-            inspirations: "💡 Inspiration Palettes:",
+            inspirations: "💡 Smart Palette (Based on current settings):",
+            inspirationsHint: "* Click on a swatch to apply its adjusted parameters",
             addAll: "Add All",
             preview: "Penlight Preview",
             addToList: "Add to Color List",
@@ -235,7 +238,8 @@
             step1: "1. カラー調整",
             presets: "🎨プリセット：",
             colorPicker: "🖌️ ピッカー：",
-            inspirations: "💡 カラーパレット：",
+            inspirations: "💡 スマートパレット (現在の設定から生成)：",
+            inspirationsHint: "※ 色のブロックをクリックすると微調整されたパラメータが適用されます",
             addAll: "一括追加",
             preview: "発色プレビュー",
             addToList: "リストに追加",
@@ -287,10 +291,6 @@
             }
         });
 
-        document.querySelectorAll('[data-i18n-btn="addAll"]').forEach(btn => {
-            btn.textContent = i18n[lang].addAll;
-        });
-
         document.getElementById('list-name').placeholder = i18n[lang].listNamePlaceholder;
         document.querySelector('[data-i18n="step2"]').textContent = i18n[lang].step2;
         
@@ -311,13 +311,6 @@
         { name: '黃', r:255, g:255, b:0, w:0, bg:'bg-yellow-400 text-black' }
     ];
 
-    const colorPalettes = [
-        [ {r:255,g:182,b:193,w:0}, {r:135,g:206,b:235,w:0}, {r:221,g:160,b:221,w:0}, {r:255,g:255,b:224,w:0} ], 
-        [ {r:255,g:0,b:255,w:0},   {r:0,g:255,b:255,w:0},   {r:255,g:255,b:0,w:0},   {r:0,g:255,b:0,w:0} ],   
-        [ {r:255,g:69,b:0,w:0},    {r:255,g:140,b:0,w:0},   {r:255,g:215,b:0,w:0},   {r:178,g:34,b:34,w:0} ], 
-        [ {r:0,g:191,b:255,w:0},   {r:30,g:144,b:255,w:0},  {r:0,g:0,b:139,w:0},     {r:64,g:224,b:208,w:0} ] 
-    ];
-
     let customColors = [];
     const maxColors = 30;
 
@@ -334,38 +327,6 @@
         btn.onclick = () => setRGBW(p.r, p.g, p.b, p.w);
         presetContainer.appendChild(btn);
     });
-
-    const paletteContainer = document.getElementById('inspiration-palettes');
-    colorPalettes.forEach((palette, idx) => {
-        const row = document.createElement('div');
-        row.className = "flex items-center justify-between p-2 border rounded bg-white shadow-sm hover:shadow transition";
-        
-        const colorDivs = palette.map(c => {
-            let simR = c.r + c.w, simG = c.g + c.w, simB = c.b + c.w;
-            const max = Math.max(simR, simG, simB);
-            if(max > 255) { simR=Math.round(simR/max*255); simG=Math.round(simG/max*255); simB=Math.round(simB/max*255); }
-            return `<div class="w-8 h-8 rounded border shadow-inner" style="background-color:rgb(${simR},${simG},${simB})"></div>`;
-        }).join('');
-
-        row.innerHTML = `
-            <div class="flex gap-1">${colorDivs}</div>
-            <button onclick="addPalette(${idx})" class="text-xs font-bold bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-2 rounded transition" data-i18n-btn="addAll">${i18n[currentLang].addAll}</button>
-        `;
-        paletteContainer.appendChild(row);
-    });
-
-    function addPalette(idx) {
-        const palette = colorPalettes[idx];
-        if (customColors.length + palette.length > maxColors) {
-            alert(i18n[currentLang].alertMax);
-            return;
-        }
-        palette.forEach(c => {
-            const hexStr = `${toHex(c.r)}${toHex(c.g)}${toHex(c.b)}${toHex(c.w)}00`;
-            customColors.push({ r: c.r, g: c.g, b: c.b, w: c.w, hex: hexStr });
-        });
-        renderList();
-    }
 
     ['r', 'g', 'b', 'w'].forEach(c => {
         inputs[c].range.addEventListener('input', (e) => {
@@ -403,6 +364,66 @@
 
     function toHex(n) {
         return parseInt(n).toString(16).padStart(2, '0').toUpperCase();
+    }
+
+    // 生成智慧顏色靈感盤
+    function renderInspirations(baseR, baseG, baseB, baseW) {
+        const container = document.getElementById('inspiration-palettes');
+        container.innerHTML = '';
+        
+        const clamp = (val) => Math.max(0, Math.min(255, Math.round(val)));
+        
+        // 定義計算偏差的輔助函數
+        const vary = (dr, dg, db, dw) => ({
+            r: clamp(baseR + dr),
+            g: clamp(baseG + dg),
+            b: clamp(baseB + db),
+            w: clamp(baseW + dw)
+        });
+
+        // 定義 16 種微調變化 (基於 255 範圍的百分比大約轉換為數值，例如 10% 約 26)
+        const variations = [
+            { label: "RGB +10%", ...vary(26, 26, 26, 0) },
+            { label: "RGB +20%", ...vary(51, 51, 51, 0) },
+            { label: "RGB +30%", ...vary(77, 77, 77, 0) },
+            { label: "RGB -10%", ...vary(-26, -26, -26, 0) },
+            { label: "RGB -20%", ...vary(-51, -51, -51, 0) },
+            { label: "RGB -30%", ...vary(-77, -77, -77, 0) },
+            { label: "W (白) +25%", ...vary(0, 0, 0, 64) },
+            { label: "W (白) -25%", ...vary(0, 0, 0, -64) },
+            { label: "R (紅) +20%", ...vary(51, 0, 0, 0) },
+            { label: "G (綠) +20%", ...vary(0, 51, 0, 0) },
+            { label: "B (藍) +20%", ...vary(0, 0, 51, 0) },
+            { label: "R (紅) -20%", ...vary(-51, 0, 0, 0) },
+            { label: "G (綠) -20%", ...vary(0, -51, 0, 0) },
+            { label: "B (藍) -20%", ...vary(0, 0, -51, 0) },
+            { label: "整體 +15%", ...vary(38, 38, 38, 38) },
+            { label: "整體 -15%", ...vary(-38, -38, -38, -38) }
+        ];
+
+        variations.forEach(c => {
+            const btn = document.createElement('button');
+            
+            // 為了在網頁上顯示近似顏色，先計算 RGBW 混合後的預覽色
+            let simR = c.r + c.w, simG = c.g + c.w, simB = c.b + c.w;
+            const maxVal = Math.max(simR, simG, simB);
+            if (maxVal > 255) {
+                simR = Math.round((simR / maxVal) * 255);
+                simG = Math.round((simG / maxVal) * 255);
+                simB = Math.round((simB / maxVal) * 255);
+            }
+            
+            btn.className = 'w-full aspect-square rounded border border-gray-300 shadow-sm hover:scale-110 hover:shadow-md transition-transform focus:outline-none cursor-pointer';
+            btn.style.backgroundColor = `rgb(${simR}, ${simG}, ${simB})`;
+            
+            // 設定滑鼠停留時顯示的提示文字
+            btn.title = `微調: ${c.label}\n數值: R:${c.r} G:${c.g} B:${c.b} W:${c.w}`;
+            
+            // 點擊後將此顏色帶入自訂參數中
+            btn.onclick = () => setRGBW(c.r, c.g, c.b, c.w);
+            
+            container.appendChild(btn);
+        });
     }
 
     function updateUI() {
@@ -443,6 +464,9 @@
         } else {
             warningBox.classList.add('hidden');
         }
+
+        // 每次更新 UI 時，連帶刷新智慧顏色靈感盤
+        renderInspirations(r, g, b, w);
     }
 
     function addColorToList() {
